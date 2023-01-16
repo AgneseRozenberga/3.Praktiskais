@@ -9,7 +9,6 @@ struct Product {
     char name[50];
     int quantity;
     double price;
-    double earnings; 
 }; 
 
 bool priceCompare(const Product& a, const Product& b) {
@@ -48,11 +47,11 @@ void insertProduct(vector<Product>& products) {
     file.close();
 }
 
-void outputAllData(vector<Product> products) {
+void outputAllData(vector<Product>& products) {
     ifstream file("product.bin");
     Product temp;
-    
-    if (file.good()) {
+
+    if (file.is_open()) {
         while (file >> temp.name >> temp.quantity >> temp.price >> temp.earnings) {
             products.push_back(temp);
         }
@@ -83,6 +82,7 @@ void sellProduct(vector<Product>& products) {
             found = true;
             if (product.quantity >= quantity) {
                 product.quantity -= quantity;
+                product.earnings += product.price * quantity;
                 cout << "Successfully sold " << quantity << " units of " << name << endl;
                 break;
             } 
@@ -97,14 +97,19 @@ void sellProduct(vector<Product>& products) {
     }
     else {
         ofstream file("product.bin", ios::out | ios::binary);
-    for (const auto& product : products) {
-        file << product.name << ' ';
-        file << product.quantity << ' ';
-        file << product.price << ' ';
-        file << product.earnings << endl;
-    }
-    file.close();
+        if(file.is_open()){
+            for (const auto& product : products) {
+                file << product.name << ' ';
+                file << product.quantity << ' ';
+                file << product.price << ' ';
+                file << product.earnings << endl;
+            }
         }
+        else{
+            cout << "Error opening file" << endl;
+        }
+        file.close();
+    }
 }
 
 void searchProductByName(string name) {
@@ -125,7 +130,8 @@ void searchProductByName(string name) {
             break;
         }
     }
-    if (!found) cout << "product not found"<<endl;
+    if (!found) 
+        cout << "product not found" << endl;
     file.close();
 }
 
@@ -133,7 +139,7 @@ void top3MostSold(vector<Product>& products) {
     Product temp;
     products.clear();
     ifstream file("product.bin", ios::in | ios::binary);
-    if (file.good()) {
+    if (file.is_open()) {
         while (file.read((char*)&temp, sizeof(temp))) {
             if (temp.quantity > 0) {
                 products.push_back(temp);
@@ -157,7 +163,7 @@ void top3LeastSold(vector<Product>& products) {
     Product temp;
     products.clear();
     ifstream file("product.bin", ios::in | ios::binary);
-    if (file.good()) {
+    if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
             products.push_back(temp);
         }
@@ -180,7 +186,7 @@ void top3MostEarned(vector<Product>& products) {
     Product temp;
     products.clear();
     ifstream file("product.bin", ios::in | ios::binary);
-    if (file.good()) {
+    if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
             if (temp.quantity > 0) {
                 products.push_back(temp);
@@ -204,7 +210,7 @@ void top3LeastEarned(vector<Product> products) {
     Product temp;
     products.clear();
     ifstream file("product.bin", ios::in | ios::binary);
-    if (file.good()) {
+    if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
             if (temp.quantity > 0) {
                 products.push_back(temp);
@@ -228,7 +234,7 @@ void top3MostExpensive(vector<Product>& products) {
     Product temp;
     products.clear();
     ifstream file("product.bin", ios::in | ios::binary);
-    if (file.good()) {
+    if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
             products.push_back(temp);
         }
@@ -256,7 +262,7 @@ void top3Cheapest(vector<Product>& products) {
     Product temp;
     products.clear();
     ifstream file("product.bin", ios::in | ios::binary);
-    if (file.good()) {
+    if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
             products.push_back(temp);
         }
@@ -275,7 +281,7 @@ void top3Cheapest(vector<Product>& products) {
         }
     }
     catch(const std::exception& e){
-        cout<<e.what()<<endl;
+        cout << e.what() << endl;
     }
     file.close(); 
 }
