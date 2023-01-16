@@ -2,167 +2,342 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
+#include <limits>
 using namespace std;
 
 struct Product {
-    string name;
+    char name[50];
     int quantity;
     double price;
-    double earnings; // Earnings = Quantity * Price
+    double earnings; 
+}; 
 
-};
-
-// Comparison function to sort the product by price
-bool priceCompare(Product a, Product b) {
+bool priceCompare(const Product& a, const Product& b) {
     return a.price < b.price;
 }
 
-void top3Cheapest() {
-    vector<Product> products;
-    Product temp;
-    fstream file("product.bin", ios::in | ios::binary);
-    while (file.read((char *) &temp, sizeof(Product))) {
-        products.push_back(temp);
-    }
-    file.close();
-
-    sort(products.begin(), products.end(), priceCompare);
-
-    cout << "Top 3 Cheapest product:" << endl;
-    for (int i = 0; i < min((int) products.size(), 3); i++) {
-        cout << products[i].name << " - Price: $" << products[i].price << endl;
-    }
-}
 bool quantityCompare(Product a, Product b) {
     return a.quantity > b.quantity;
 }
-void top3MostSold() {
-    vector<Product> products;
 
-    fstream file("product.bin", ios::in | ios::binary);
-    Product product;
+bool earningsCompare(Product a, Product b) {
+    return a.earnings < b.earnings;
+}
 
-    while (file.read((char *) &product, sizeof(Product))) {
-        products.push_back(product);
+bool priceDescendingCompare(Product a, Product b) {
+    return a.price > b.price;
+}
+
+void insertProduct(vector<Product>& products) {
+    Product newProduct;
+    cout <<"Enter the name of the new product: ";
+    cin >> newProduct.name;
+    cout << "Enter the quantity of the new product: ";
+    cin >> newProduct.quantity;
+    cout << "Enter the price of the new product: $";
+    cin >> newProduct.price;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    newProduct.earnings = newProduct.quantity * newProduct.price;
+
+    products.push_back(newProduct);
+
+    ofstream file("product.bin", ios::out | ios::binary);
+    for (const auto& product : products) {
+        file.write(reinterpret_cast<const char*>(&product), sizeof(Product));
+    }
+    file.close();
+}
+
+void outputAllData(vector<Product> products) {
+    ifstream file("product.bin");
+    Product temp;
+    
+    if (file.good()) {
+        while (file >> temp.name >> temp.quantity >> temp.price >> temp.earnings) {
+            products.push_back(temp);
+        }
+        file.close();
+    } 
+    else {
+        cout << "File not found" << endl;
+        return;
     }
 
+    cout << "All Product Data:" << endl;
+    for (int i = 0; i < products.size(); i++) {
+        cout << "Name: " << products[i].name << " - Quantity: " << products[i].quantity << " - Price: $" << products[i].price << " - Earnings: $" << products[i].earnings << endl;
+    }
+}
+
+void sellProduct(vector<Product>& products) {
+    string name;
+    int quantity;
+    cout << "Enter the name of the product you want to sell: ";
+    cin >> name;
+    cout << "Enter the quantity you want to sell: ";
+    cin >> quantity;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    bool found = false;
+    for (auto& product : products) {
+        if (product.name == name) {
+            found = true;
+            if (product.quantity >= quantity) {
+                product.quantity -= quantity;
+                cout << "Successfully sold " << quantity << " units of " << name << endl;
+                break;
+            } 
+            else {
+                cout << "Cannot sell " << quantity << " units of " << name << ". Only " << product.quantity << " units available" << endl;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        cout << "Product with name " << name << " not found" << endl;
+    }
+    else {
+        ofstream file("product.bin", ios::out | ios::binary);
+    for (const auto& product : products) {
+        file << product.name << ' ';
+        file << product.quantity << ' ';
+        file << product.price << ' ';
+        file << product.earnings << endl;
+    }
     file.close();
+        }
+}
+
+void searchProductByName(string name) {
+    ifstream file("product.bin", ios::binary);
+    if (!file.is_open()) {
+        cout << "Error opening file" << endl;
+        return;
+    }
+    Product product;
+    bool found = false;
+    while (file.read((char*)&product, sizeof(Product))) {
+        if (name == product.name) {
+            found = true;
+            cout << "Name: " << product.name << endl;
+            cout << "Quantity: " << product.quantity << endl;
+            cout << "Price: " << product.price << endl;
+            cout << "Earnings: " << product.quantity * product.price << endl;
+            break;
+        }
+    }
+    if (!found) cout << "product not found"<<endl;
+    file.close();
+}
+
+void top3MostSold(vector<Product>& products) {
+    Product temp;
+    products.clear();
+    ifstream file("product.bin", ios::in | ios::binary);
+    if (file.good()) {
+        while (file.read((char*)&temp, sizeof(temp))) {
+            if (temp.quantity > 0) {
+                products.push_back(temp);
+            }
+        }
+        file.close();
+    } 
+    else {
+        cout << "File not found" << endl;
+    }
 
     sort(products.begin(), products.end(), quantityCompare);
 
-    cout << "Top 3 Most Sold Products:" << endl;
+    cout<< "Top 3 Most Sold Products:" << endl;
     for (int i = 0; i < min((int) products.size(), 3); i++) {
         cout << products[i].name << " - Quantity Sold: " << products[i].quantity << endl;
     }
 }
 
-void insertProduct() {
-    Product newProduct;
-    // Prompt user for the product details
-
-    cout << "Enter the name of the new product: ";
-    cin.ignore();
-    getline(cin, newProduct.name);
-    cout << "Enter the quantity of the new product: ";
-    cin >> newProduct.quantity;
-    cout << "Enter the price of the new product: ";
-    cin >> newProduct.price;
-    newProduct.earnings = newProduct.quantity * newProduct.price;
-    bool idExist = false;
-    // Open the binary file and check if the id exist or not 
-    fstream file("product.bin", ios::in | ios::binary);
-    Product product;
-    while (file.read((char* ) &product, sizeof(Product))) {
-        if (product.name == newProduct.name) {
-            idExist = true;
-            break;
-        }
-    }
-    file.close();
-    // if id not exist, insert the new product in the binary file
-    if (!idExist) {
-        file.open("product.bin", ios::out | ios::app | ios::binary);
-        file.write((char*) &newProduct, sizeof(Product));
-        file.close();
-        cout<< "product added successfully"<<endl;
-    } else {
-        cout << "product with name = " << newProduct.name << " already exist" << endl;
-    }
-}
-
-bool earningsCompare(Product a, Product b) {
-    return a.earnings < b.earnings;
-
-}
-void top3LeastEarned() {
-    vector<Product> products;
+void top3LeastSold(vector<Product>& products) {
     Product temp;
-    fstream file("product.bin", ios::in | ios::binary);
-
-    while (file.read((char *) &temp, sizeof(Product))) {
-        products.push_back(temp);
+    products.clear();
+    ifstream file("product.bin", ios::in | ios::binary);
+    if (file.good()) {
+        while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
+            products.push_back(temp);
+        }
+        file.close();
+    } 
+    else {
+        cout << "File not found" << endl;
     }
 
-    file.close();
+    sort(products.begin(), products.end(), [](const Product &a, const Product &b){ return a.quantity < b.quantity; });
+
+    cout << "Top 3 Least Sold Products:" << endl;
+    int limit = min((int) products.size(), 3);
+    for (int i = 0; i < limit; i++) {
+        cout << products[i].name << " - Quantity Sold: " << products[i].quantity << endl;
+    }
+}
+
+void top3MostEarned(vector<Product>& products) {
+    Product temp;
+    products.clear();
+    ifstream file("product.bin", ios::in | ios::binary);
+    if (file.good()) {
+        while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
+            if (temp.quantity > 0) {
+                products.push_back(temp);
+            }
+        }
+        file.close();
+    } 
+    else {
+        cout << "File not found" << endl;
+    }
 
     sort(products.begin(), products.end(), earningsCompare);
 
-    cout << "Top 3 Least Earned product:" << endl;
+    cout << "Top 3 Products for Which the Most Amount Has Been Earned:" << endl;
+    for (int i = products.size()-1; i >= max(0, (int) products.size()-3); i--) {
+        cout << products[i].name << " - Earnings: $" << products[i].earnings << endl;
+    }
+}
+
+void top3LeastEarned(vector<Product> products) {
+    Product temp;
+    products.clear();
+    ifstream file("product.bin", ios::in | ios::binary);
+    if (file.good()) {
+        while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
+            if (temp.quantity > 0) {
+                products.push_back(temp);
+            }
+        }
+        file.close();
+    } 
+    else {
+        cout << "File not found" << endl;
+    }
+
+    sort(products.begin(), products.end(), earningsCompare);
+
+    cout << "Top 3 Products for Which the Least Amount Has Been Earned:" << endl;
     for (int i = 0; i < min((int) products.size(), 3); i++) {
         cout << products[i].name << " - Earnings: $" << products[i].earnings << endl;
     }
 }
-void outputAllData() {
-    fstream file("product.bin", ios::in | ios::binary);
-    Product product;
-    cout<< "All Products:"<<endl;
-    while (file.read((char *) &product, sizeof(Product))) {
-        cout << " Name: " << product.name << " Quantity: " << product.quantity << " Price: $" << product.price << " Earnings: $" << product.earnings << endl;
+
+void top3MostExpensive(vector<Product>& products) {
+    Product temp;
+    products.clear();
+    ifstream file("product.bin", ios::in | ios::binary);
+    if (file.good()) {
+        while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
+            products.push_back(temp);
+        }
+    } 
+    else {
+        cout << "File not found" << endl;
     }
-    file.close();
+
+    sort(products.rbegin(), products.rend(), priceCompare);
+    try {
+        cout << "Top 3 Expensive product:" << endl;
+        for (int i = 0; i < min((int) products.size(), 3); i++) {
+            if(i<0 || i >= products.size())
+                throw out_of_range("Index out of range");
+            cout << products[i].name << " - Price: $" << products[i].price << endl;
+        }
+    }
+    catch(const std::exception& e){
+        cout<<e.what()<<endl;
+    }
+    file.close(); 
+}
+
+void top3Cheapest(vector<Product>& products) {
+    Product temp;
+    products.clear();
+    ifstream file("product.bin", ios::in | ios::binary);
+    if (file.good()) {
+        while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
+            products.push_back(temp);
+        }
+    } 
+    else {
+        cout << "File not found" << endl;
+    }
+
+    sort(products.begin(), products.end(), priceCompare);
+    try {
+        cout << "Top 3 Cheapest product:" << endl;
+        for (int i = 0; i < min((int) products.size(), 3); i++) {
+            if(i<0 || i >= products.size())
+                throw out_of_range("Index out of range");
+            cout << products[i].name << " - Price: $" << products[i].price << endl;
+        }
+    }
+    catch(const std::exception& e){
+        cout<<e.what()<<endl;
+    }
+    file.close(); 
 }
 
 int main() {
-cout << "Welcome to Product Management System" << endl;
-// Creating a variable to store the user's choice
-int choice;
-
-// Looping until the user exits
-do {
-    cout << "1. Insert Product" << endl;
-    cout << "2. Output All Data" << endl;
-    cout << "3. Top 3 Cheapest Products" << endl;
-    cout << "4. Top 3 Most Sold Products" << endl;
-    cout << "5. Top 3 Least Earned Products" << endl;
-    cout << "6. Exit" << endl;
-    cout << "Enter your choice: ";
-    cin >> choice;
-
-    switch (choice) {
-        case 1:
-            insertProduct();
-            break;
-        case 2:
-            outputAllData();
-            break;
-        case 3:
-            top3Cheapest();
-            break;
-        case 4:
-            top3MostSold();
-            break;
-        case 5:
-            top3LeastEarned();
-            break;
-        case 6:
-            cout << "Exiting..." << endl;
-            break;
-        default:
-            cout << "Invalid choice. Please try again." << endl;
-            break;
+    vector<Product> products;
+    int choice;
+    string productName;
+    while (true) {
+        cout << "1. Insert a new product" << endl;
+        cout << "2. Output all data" << endl;
+        cout << "3. Sell a product" << endl;
+        cout << "4. Info about specific product" << endl;
+        cout << "5. Top 3 most sold products" << endl;
+        cout << "6. Top 3 least sold products" << endl;
+        cout << "7. Top 3 most earned products" << endl;
+        cout << "8. Top 3 least earned products" << endl;
+        cout << "9. Top 3 most expensive products" << endl;
+        cout << "10. Top 3 cheapest products" << endl;
+        cout << "11. Exit" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        switch(choice) {
+            case 1:
+                insertProduct(products);
+                break;
+            case 2:
+                outputAllData(products);
+                break;
+            case 3:
+                sellProduct(products);
+                break;
+            case 4:
+                cout << "Enter the product name: ";
+                cin >> productName;
+                searchProductByName(productName);
+                break;
+            case 5:
+                top3MostSold(products);
+                break;
+            case 6:
+                top3LeastSold(products);
+                break;
+            case 7:
+                top3MostEarned(products);
+                break;
+            case 8:
+                top3LeastEarned(products);
+                break;
+            case 9:
+                top3MostExpensive(products);
+                break;
+            case 10:
+                top3Cheapest(products);
+                break;
+            case 11:
+                return 0;
+                break;
+            default:
+                cout << "Invalid choice" << endl;
+                break;
+        }
     }
-} while (choice != 6);
-
-return 0;
 }
