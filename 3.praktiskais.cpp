@@ -9,6 +9,7 @@ struct Product {
     char name[50];
     int quantity;
     double price;
+    double earnings;
 }; 
 
 bool priceCompare(const Product& a, const Product& b) {
