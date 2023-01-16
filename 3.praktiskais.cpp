@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+
 using namespace std;
 
 struct Product {
@@ -78,35 +79,34 @@ void sellProduct(vector<Product>& products) {
     cin >> quantity;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     bool found = false;
-
-    for (auto& product : products) {
-        if (product.name == name) {
+    for (int i = 0; i < products.size(); i++) {
+        if (products[i].name == name) {
             found = true;
-            if (product.quantity >= quantity) {
-                product.quantity -= quantity;
+            if (products[i].quantity >= quantity) {
+                products[i].quantity -= quantity;
+                products[i].sold += quantity;
                 cout << "Successfully sold " << quantity << " units of " << name << endl;
                 break;
             } 
             else {
-                cout << "Cannot sell " << quantity << " units of " << name << ". Only " << product.quantity << " units available" << endl;
+                cout << "Cannot sell " << quantity << " units of " << name << ". Only " << products[i].quantity << " units available" << endl;
                 break;
             }
         }
     }
-
     if (!found) {
         cout << "Product with name " << name << " not found" << endl;
     }
     else {
         ofstream file("product.bin", ios::out | ios::binary);
-        if(file.is_open()) {
+        if(file.is_open()){
             for (const auto& product : products) {
-                file << product.name << ' ';
-                file << product.quantity << ' ';
-                file << product.price << ' ' << endl;
+                if(product.quantity != 0){
+                    file.write((char*)&product, sizeof(Product));
+                }
             }
         }
-        else {
+        else{
             cout << "Error opening file" << endl;
         }
         file.close();
@@ -143,7 +143,7 @@ void top3MostSold(vector<Product>& products) {
     ifstream file("product.bin", ios::in | ios::binary);
     if (file.is_open()) {
         while (file.read((char*)&temp, sizeof(temp))) {
-            if (temp.quantity > 0) {
+            if (temp.sold > 0) {
                 products.push_back(temp);
             }
         }
@@ -153,11 +153,11 @@ void top3MostSold(vector<Product>& products) {
         cout << "File not found" << endl;
     }
 
-    sort(products.begin(), products.end(), quantityCompare);
+    sort(products.begin(), products.end(), [](const Product &a, const Product &b){ return a.sold > b.sold; });
 
     cout << "Top 3 Most Sold Products:" << endl;
     for (int i = 0; i < min((int) products.size(), 3); i++) {
-        cout << products[i].name << " - Quantity Sold: " << products[i].quantity << endl;
+        cout << products[i].name << " - Quantity Sold: " << products[i].sold << endl;
     }
 }
 
@@ -175,13 +175,12 @@ void top3LeastSold(vector<Product>& products) {
         cout << "File not found" << endl;
     }
 
-    sort(products.begin(), products.end(), [](const Product &a, const Product &b){ return a.quantity < b.quantity; });
+    sort(products.begin(), products.end(), [](const Product &a, const Product &b){ return a.sold < b.sold; });
 
     cout << "Top 3 Least Sold Products:" << endl;
     int limit = min((int) products.size(), 3);
     for (int i = 0; i < limit; i++) {
-        cout << products[i].name << " - Quantity Sold: " << products[i].quantity << endl;
-    }
+        cout << products[i].name << " - Quantity Sold: " << products[i].sold << endl;
 }
 
 void top3MostEarned(vector<Product>& products) {
