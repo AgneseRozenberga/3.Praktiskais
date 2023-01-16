@@ -8,6 +8,7 @@ using namespace std;
 struct Product {
     char name[50];
     int quantity;
+    int sold;
     double price;
     double earnings;
 }; 
@@ -37,7 +38,6 @@ void insertProduct(vector<Product>& products) {
     cout << "Enter the price of the new product: $";
     cin >> newProduct.price;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    newProduct.earnings = newProduct.quantity * newProduct.price;
 
     products.push_back(newProduct);
 
@@ -65,7 +65,7 @@ void outputAllData(vector<Product>& products) {
 
     cout << "All Product Data:" << endl;
     for (int i = 0; i < products.size(); i++) {
-        cout << "Name: " << products[i].name << " - Quantity: " << products[i].quantity << " - Price: $" << products[i].price << " - Earnings: $" << products[i].earnings << endl;
+        cout << "Name: " << products[i].name << " - Quantity: " << products[i].quantity << " - Price: $" << products[i].price << endl;
     }
 }
 
@@ -83,7 +83,6 @@ void sellProduct(vector<Product>& products) {
             found = true;
             if (product.quantity >= quantity) {
                 product.quantity -= quantity;
-                product.earnings += product.price * quantity;
                 cout << "Successfully sold " << quantity << " units of " << name << endl;
                 break;
             } 
@@ -102,8 +101,7 @@ void sellProduct(vector<Product>& products) {
             for (const auto& product : products) {
                 file << product.name << ' ';
                 file << product.quantity << ' ';
-                file << product.price << ' ';
-                file << product.earnings << endl;
+                file << product.price << ' ' << endl;
             }
         }
         else{
@@ -112,7 +110,6 @@ void sellProduct(vector<Product>& products) {
         file.close();
     }
 }
-
 
 void searchProductByName(string name) {
     ifstream file("product.bin", ios::binary);
@@ -128,7 +125,6 @@ void searchProductByName(string name) {
             cout << "Name: " << product.name << endl;
             cout << "Quantity: " << product.quantity << endl;
             cout << "Price: " << product.price << endl;
-            cout << "Earnings: " << product.quantity * product.price << endl;
             break;
         }
     }
@@ -155,7 +151,7 @@ void top3MostSold(vector<Product>& products) {
 
     sort(products.begin(), products.end(), quantityCompare);
 
-    cout<< "Top 3 Most Sold Products:" << endl;
+    cout << "Top 3 Most Sold Products:" << endl;
     for (int i = 0; i < min((int) products.size(), 3); i++) {
         cout << products[i].name << " - Quantity Sold: " << products[i].quantity << endl;
     }
@@ -203,7 +199,7 @@ void top3MostEarned(vector<Product>& products) {
     sort(products.begin(), products.end(), earningsCompare);
 
     cout << "Top 3 Products for Which the Most Amount Has Been Earned:" << endl;
-    for (int i = products.size()-1; i >= max(0, (int) products.size()-3); i--) {
+    for (int i = products.size() - 1; i >= max(0, (int) products.size() - 3); i--) {
         cout << products[i].name << " - Earnings: $" << products[i].earnings << endl;
     }
 }
@@ -245,17 +241,17 @@ void top3MostExpensive(vector<Product>& products) {
         cout << "File not found" << endl;
     }
 
-    sort(products.rbegin(), products.rend(), priceCompare);
+    sort(products.begin(), products.end(), priceCompare);
     try {
         cout << "Top 3 Expensive product:" << endl;
         for (int i = 0; i < min((int) products.size(), 3); i++) {
-            if(i<0 || i >= products.size())
+            if(i < 0 || i >= products.size())
                 throw out_of_range("Index out of range");
             cout << products[i].name << " - Price: $" << products[i].price << endl;
         }
     }
-    catch(const std::exception& e){
-        cout<<e.what()<<endl;
+    catch(const exception& e){
+        cout << e.what() << endl;
     }
     file.close(); 
 }
@@ -277,12 +273,12 @@ void top3Cheapest(vector<Product>& products) {
     try {
         cout << "Top 3 Cheapest product:" << endl;
         for (int i = 0; i < min((int) products.size(), 3); i++) {
-            if(i<0 || i >= products.size())
+            if(i < 0 || i >= products.size())
                 throw out_of_range("Index out of range");
             cout << products[i].name << " - Price: $" << products[i].price << endl;
         }
     }
-    catch(const std::exception& e){
+    catch(const exception& e){
         cout << e.what() << endl;
     }
     file.close(); 
