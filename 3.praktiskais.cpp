@@ -3,7 +3,6 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
-
 using namespace std;
 
 struct Product {
@@ -49,11 +48,11 @@ void insertProduct(vector<Product>& products) {
 }
 
 void outputAllData(vector<Product>& products) {
-    ifstream file("product.bin");
+    ifstream file("product.bin", ios::binary);
     Product temp;
 
     if (file.is_open()) {
-        while (file >> temp.name >> temp.quantity >> temp.price >> temp.earnings) {
+        while (file.read((char*)&temp, sizeof(Product))) {
             products.push_back(temp);
         }
         file.close();
@@ -112,6 +111,7 @@ void sellProduct(vector<Product>& products) {
         file.close();
     }
 }
+
 
 void searchProductByName(string name) {
     ifstream file("product.bin", ios::binary);
