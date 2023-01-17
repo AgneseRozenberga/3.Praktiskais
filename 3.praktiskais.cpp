@@ -32,6 +32,7 @@ bool priceDescendingCompare(Product a, Product b) {
 
 void insertProduct(vector<Product>& products) {
     Product newProduct;
+
     cout <<"Enter the name of the new product: ";
     cin >> newProduct.name;
     cout << "Enter the quantity of the new product: ";
@@ -77,19 +78,22 @@ void outputAllData(vector<Product>& products) {
     }
     cout << "All Product Data:" << endl;
     for (int i = 0; i < products.size(); i++) {
-        cout << "Name: " << products[i].name << " - Quantity: " << products[i].quantity << " - Price: $" << products[i].price << endl;
+        cout << "Name: " << products[i].name 
+            << " - Quantity: " << products[i].quantity 
+            << " - Price: $" << products[i].price << endl;
     }
 }
-
 
 void sellProduct(vector<Product>& products) {
     string name;
     int quantity;
+
     cout << "Enter the name of the product you want to sell: ";
     cin >> name;
     cout << "Enter the quantity you want to sell: ";
     cin >> quantity;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
     bool found = false;
     for (int i = 0; i < products.size(); i++) {
         if (products[i].name == name) {
@@ -101,7 +105,8 @@ void sellProduct(vector<Product>& products) {
                 break;
             } 
             else {
-                cout << "Cannot sell " << quantity << " units of " << name << ". Only " << products[i].quantity << " units available" << endl;
+                cout << "Cannot sell " << quantity << " units of " << name 
+                    << ". Only " << products[i].quantity << " units available" << endl;
                 break;
             }
         }
@@ -111,14 +116,14 @@ void sellProduct(vector<Product>& products) {
     }
     else {
         ofstream file("product.bin", ios::out | ios::binary);
-        if(file.is_open()){
+        if (file.is_open()) {
             for (const auto& product : products) {
                 if(product.quantity != 0){
                     file.write((char*)&product, sizeof(Product));
                 }
             }
         }
-        else{
+        else {
             cout << "Error opening file" << endl;
         }
         file.close();
@@ -140,7 +145,7 @@ void searchProductByName(string name) {
             cout << "Name: " << product.name << endl;
             cout << "Quantity: " << product.quantity << endl;
             cout << "Price: " << product.price << endl;
-            cout << "Earnings: " << product.quantity * product.price << endl;
+            cout << "Earnings: " << product.sold * product.price << endl;
             break;
         }
     }
@@ -243,7 +248,7 @@ void top3MostExpensive(vector<Product>& products) {
     if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
             products.push_back(temp);
-    }
+        }
     }
     else {
         cout << "File not found" << endl;
