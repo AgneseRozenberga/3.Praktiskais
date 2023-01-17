@@ -181,6 +181,7 @@ void top3LeastSold(vector<Product>& products) {
     int limit = min((int) products.size(), 3);
     for (int i = 0; i < limit; i++) {
         cout << products[i].name << " - Quantity Sold: " << products[i].sold << endl;
+    }
 }
 
 void top3MostEarned(vector<Product>& products) {
