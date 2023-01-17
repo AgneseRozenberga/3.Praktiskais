@@ -50,12 +50,24 @@ void insertProduct(vector<Product>& products) {
 }
 
 void outputAllData(vector<Product>& products) {
+    vector<string> names;
+    products.clear();
+    names.clear();
     ifstream file("product.bin", ios::binary);
     Product temp;
-
     if (file.is_open()) {
         while (file.read((char*)&temp, sizeof(Product))) {
-            products.push_back(temp);
+            bool found = false;
+            for (int i = 0; i < names.size(); i++) {
+                if (temp.name == names[i]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                products.push_back(temp);
+                names.push_back(temp.name);
+            }
         }
         file.close();
     } 
@@ -63,12 +75,12 @@ void outputAllData(vector<Product>& products) {
         cout << "File not found" << endl;
         return;
     }
-
     cout << "All Product Data:" << endl;
     for (int i = 0; i < products.size(); i++) {
         cout << "Name: " << products[i].name << " - Quantity: " << products[i].quantity << " - Price: $" << products[i].price << endl;
     }
 }
+
 
 void sellProduct(vector<Product>& products) {
     string name;
