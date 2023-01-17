@@ -141,18 +141,15 @@ void top3MostSold(vector<Product>& products) {
     Product temp;
     products.clear();
     ifstream file("product.bin", ios::in | ios::binary);
-    if (file.is_open()) {
-        while (file.read((char*)&temp, sizeof(temp))) {
-            if (temp.sold > 0) {
+        if (file.is_open()) {
+            while (file.read((char*)&temp, sizeof(temp))) {
                 products.push_back(temp);
             }
+            file.close();
         }
-        file.close();
-    } 
-    else {
-        cout << "File not found" << endl;
-    }
-
+        else {
+            cout << "File not found" << endl;
+        }
     sort(products.begin(), products.end(), [](const Product &a, const Product &b){ return a.sold > b.sold; });
 
     cout << "Top 3 Most Sold Products:" << endl;
@@ -165,16 +162,15 @@ void top3LeastSold(vector<Product>& products) {
     Product temp;
     products.clear();
     ifstream file("product.bin", ios::in | ios::binary);
-    if (file.is_open()) {
+        if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
             products.push_back(temp);
         }
         file.close();
-    } 
-    else {
-        cout << "File not found" << endl;
-    }
-
+        }
+        else {
+            cout << "File not found" << endl;
+        }
     sort(products.begin(), products.end(), [](const Product &a, const Product &b){ return a.sold < b.sold; });
 
     cout << "Top 3 Least Sold Products:" << endl;
