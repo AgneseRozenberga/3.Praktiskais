@@ -80,6 +80,7 @@ void outputAllData(vector<Product>& products) {
     for (int i = 0; i < products.size(); i++) {
         cout << "Name: " << products[i].name 
             << " - Quantity: " << products[i].quantity 
+            << " - Sold: " << products[i].sold
             << " - Price: $" << products[i].price << endl;
     }
 }
@@ -145,6 +146,7 @@ void searchProductByName(string name) {
             cout << "Name: " << product.name << endl;
             cout << "Quantity: " << product.quantity << endl;
             cout << "Price: " << product.price << endl;
+            cout << "Sold: " << product.sold << endl;
             cout << "Earnings: " << product.sold * product.price << endl;
             break;
         }
