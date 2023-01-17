@@ -128,6 +128,7 @@ void searchProductByName(string name) {
             cout << "Name: " << product.name << endl;
             cout << "Quantity: " << product.quantity << endl;
             cout << "Price: " << product.price << endl;
+            cout << "Earnings: " << product.quantity * product.price << endl;
             break;
         }
     }
@@ -186,20 +187,17 @@ void top3MostEarned(vector<Product>& products) {
     ifstream file("product.bin", ios::in | ios::binary);
     if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
-            if (temp.quantity > 0) {
-                products.push_back(temp);
-            }
+            temp.earnings = temp.price * temp.sold;
+            products.push_back(temp);
         }
-        file.close();
-    } 
+    file.close();
+    }
     else {
         cout << "File not found" << endl;
     }
-
-    sort(products.begin(), products.end(), earningsCompare);
-
-    cout << "Top 3 Products for Which the Most Amount Has Been Earned:" << endl;
-    for (int i = products.size() - 1; i >= max(0, (int) products.size() - 3); i--) {
+    sort(products.begin(), products.end(), [](const Product &a, const Product &b){ return a.earnings > b.earnings; });
+        cout << "Top 3 Products for Which the Most Amount Has Been Earned:" << endl;
+    for (int i = 0; i < min((int) products.size(), 3); i++) {
         cout << products[i].name << " - Earnings: $" << products[i].earnings << endl;
     }
 }
@@ -210,17 +208,15 @@ void top3LeastEarned(vector<Product> products) {
     ifstream file("product.bin", ios::in | ios::binary);
     if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
-            if (temp.quantity > 0) {
-                products.push_back(temp);
-            }
-        }
-        file.close();
-    } 
+            temp.earnings = temp.price * temp.sold;
+            products.push_back(temp);
+    }
+    file.close();
+    }
     else {
         cout << "File not found" << endl;
     }
-
-    sort(products.begin(), products.end(), earningsCompare);
+    sort(products.begin(), products.end(), [](const Product &a, const Product &b){ return a.earnings < b.earnings; });
 
     cout << "Top 3 Products for Which the Least Amount Has Been Earned:" << endl;
     for (int i = 0; i < min((int) products.size(), 3); i++) {
@@ -235,13 +231,13 @@ void top3MostExpensive(vector<Product>& products) {
     if (file.is_open()) {
         while (file.read(reinterpret_cast<char*>(&temp), sizeof(Product))) {
             products.push_back(temp);
-        }
-    } 
+    }
+    }
     else {
         cout << "File not found" << endl;
     }
 
-    sort(products.begin(), products.end(), priceCompare);
+    sort(products.begin(), products.end(), priceDescendingCompare);
 
     try {
         cout << "Top 3 Expensive product:" << endl;
